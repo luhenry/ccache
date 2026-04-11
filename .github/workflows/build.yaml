@@ -364,14 +364,21 @@ jobs:
         include:
           - arch: aarch64
             runner: ubuntu-22.04-arm
+          - arch: riscv64
+            runner: ubuntu-22.04
+            qemu: true
           - arch: x86_64
             runner: ubuntu-22.04
     steps:
       - name: Get source
         uses: actions/checkout@v4
+      - name: Set up QEMU
+        if: ${{ matrix.qemu }}
+        uses: docker/setup-qemu-action@v4
       - name: Build in Alpine container
         run: |
-          docker run --rm -v "$PWD:/work" -w /work \
+          docker run --rm  -v "$PWD:/work" -w /work \
+            ${{ matrix.qemu && format('--platform linux/{0}', matrix.arch) || '' }} \
             -e GITHUB_REF \
             -e GITHUB_REF_NAME \
             -e GITHUB_SHA \
